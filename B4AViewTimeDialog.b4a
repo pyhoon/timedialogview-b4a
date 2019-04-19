@@ -1,0 +1,98 @@
+﻿Build1=Default,b4a.example.b4aviewtimedialog
+File1=1.bal
+File2=CustomDialog.bal
+FileGroup1=Default Group
+FileGroup2=Default Group
+Group=Default Group
+IconFile=
+Library1=core
+Library2=xui views
+Library3=ime
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="5" android:targetSdkVersion="26"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~'End of default text.~\n~
+NumberOfFiles=2
+NumberOfLibraries=3
+NumberOfModules=0
+Version=9
+@EndOfDesignText@
+#Region  Project Attributes 
+	#ApplicationLabel: B4AViewTimeDialog
+	#VersionCode: 1
+	#VersionName: 1
+	#SupportedOrientations: unspecified
+	#CanInstallToExternalStorage: False
+#End Region
+
+#Region  Activity Attributes 
+	#FullScreen: False
+	#IncludeTitle: True
+#End Region
+
+Sub Process_Globals
+	Private xui As XUI
+End Sub
+
+Sub Globals
+	Dim IME As IME
+	Private dialog As B4XDialog
+	Private lblTime As Label
+	Private ftfHour As B4XFloatTextField
+	Private ftfMinute As B4XFloatTextField
+	Private cbAMPM As B4XComboBox
+	Dim HH As Int = 12
+	Dim MM As Int = 0
+	Dim TT As Int = 1
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	Activity.LoadLayout("1")
+	dialog.Initialize(Activity)
+	dialog.Title = "B4AViewTimeDialog"
+End Sub
+
+Sub Activity_Resume
+	
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
+	dialog.Close(xui.DialogResponse_Cancel)
+End Sub
+
+Sub Activity_KeyPress (KeyCode As Int) As Boolean 'Return True to consume the event
+	If KeyCode = KeyCodes.KEYCODE_BACK Then
+		If dialog.Close(xui.DialogResponse_Cancel) Then Return True
+	End If
+	Return False
+End Sub
+
+Sub lblTime_Click
+	Dim p As B4XView = xui.CreatePanel("")
+	p.SetLayoutAnimated(0, 0, 0, 100%x-40dip, 150dip)
+	p.LoadLayout("CustomDialog")
+	IME.Initialize("IME")
+	IME.SetLengthFilter(ftfHour.TextField, 2)
+	IME.SetLengthFilter(ftfMinute.TextField, 2)
+	ftfHour.TextField.EditTextHint = "12"
+	ftfHour.TextField.SetTextAlignment("CENTER", "CENTER")
+	ftfMinute.TextField.EditTextHint = "00"
+	ftfMinute.TextField.SetTextAlignment("CENTER", "CENTER")
+	cbAMPM.SetItems(Array As String("AM", "PM"))
+	cbAMPM.SelectedIndex = TT
+	dialog.PutAtTop = True 'put the dialog at the top of the screen
+	dialog.BackgroundColor = Colors.ARGB(200, 125, 125, 125)
+	dialog.ButtonsColor = Colors.RGB(125, 125, 125)
+	If HH < 10 Then ftfHour.Text = "0" & HH Else ftfHour.Text = HH
+	If MM < 10 Then ftfMinute.Text = "0" & MM Else ftfMinute.Text = MM
+	Wait For (dialog.ShowCustom(p, "OK", "", "CANCEL")) Complete (Result As Int)
+	If Result = xui.DialogResponse_Positive Then
+		If ftfHour.Text = "" Or ftfHour.Text = "0" Or ftfHour.Text = "00" Then HH = 12 Else HH = ftfHour.Text
+		If ftfMinute.Text = "" Then MM = 0 Else MM = ftfMinute.Text
+		If HH > 12 Then HH = 12
+		If MM > 59 Then MM = 0
+		If HH < 10 Then ftfHour.Text = "0" & HH Else ftfHour.Text = HH
+		If MM < 10 Then ftfMinute.Text = "0" & MM Else ftfMinute.Text = MM
+		TT = cbAMPM.SelectedIndex	
+		Dim strValue As String = ftfHour.Text & ":" & ftfMinute.Text & " " & cbAMPM.GetItem(cbAMPM.SelectedIndex)
+		'dialog.Show(strValue, "OK", "", "")
+		lblTime.Text = strValue
+	End If	
+End Sub
